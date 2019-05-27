@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Host networking is only supported on Linux
+arg_network=
+arg_publish=
+if [ "$OSTYPE" = *linux* ]; then
+    arg_network='--network host'
+else
+    arg_publish='--publish 80:80'
+fi
+
+docker run \
+  --rm \
+  --detach \
+  $arg_network \
+  $arg_publish \
+  --name nginx-wake-on-lan \
+  "$USER"/nginx-wake-on-lan
