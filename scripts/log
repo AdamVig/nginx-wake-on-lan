@@ -2,4 +2,4 @@
 
 set -euo pipefail
 
-docker logs --follow nginx-wake-on-lan
+docker logs --follow wake-on-lan

@@ -16,5 +16,5 @@ docker run \
   --detach \
   $arg_network \
   $arg_publish \
-  --name nginx-wake-on-lan \
-  "$USER"/nginx-wake-on-lan
+  --name wake-on-lan \
+  "$USER"/wake-on-lan
