@@ -3,7 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
+
+	"github.com/mdlayher/wol"
 )
 
 func pageHandler(w http.ResponseWriter, r *http.Request) {
@@ -15,6 +18,33 @@ func handleMissingParam(w http.ResponseWriter, name string) {
 	fmt.Fprintf(w, "missing query parameter '%s'", name)
 }
 
+func wake(w http.ResponseWriter, rawMac string, ip string) {
+	log.Printf("waking computer with MAC '%s' using broadcast IP '%s'\n", rawMac, ip)
+
+	c, err := wol.NewClient()
+	if err != nil {
+		log.Println("failed to create wake on LAN client", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	mac, err := net.ParseMAC(rawMac)
+	if err != nil {
+		log.Println("failed to parse MAC address", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = c.Wake(ip+":9", mac)
+	if err != nil {
+		log.Println("failed to wake computer", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
 func wakeHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if _, ok := r.Form["mac"]; !ok {
@@ -22,7 +52,9 @@ func wakeHandler(w http.ResponseWriter, r *http.Request) {
 	} else if _, ok := r.Form["ip"]; !ok {
 		handleMissingParam(w, "ip")
 	} else {
-		fmt.Fprintf(w, "waking computer with MAC '%s' using broadcast IP '%s'", r.Form.Get("mac"), r.Form.Get("ip"))
+		mac := r.Form.Get("mac")
+		ip := r.Form.Get("ip")
+		wake(w, mac, ip)
 	}
 }
 
